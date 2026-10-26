@@ -1,0 +1,72 @@
+name: Render Shorts
+on:
+  push:
+    branches: [main]
+    paths: ['jobs/**']
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job folder under jobs/ (e.g. 2026-10-27); empty = newest'
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: render
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Cache voice model and font
+        uses: actions/cache@v4
+        with:
+          path: ~/assets
+          key: assets-v1
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q kokoro-onnx soundfile scipy pillow numpy
+          mkdir -p ~/assets
+          cd ~/assets
+          for f in kokoro-v1.0.int8.onnx voices-v1.0.bin; do [ -s $f ] || curl -sSL -o $f "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/$f"; done
+          [ -s Poppins-Black.ttf ] || curl -sSL -o Poppins-Black.ttf "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Black.ttf"
+          ls -la
+      - name: Pick job
+        id: pick
+        run: |
+          J="${{ github.event.inputs.job }}"
+          [ -n "$J" ] || J=$(ls -d jobs/*/ | sort | tail -1 | xargs basename)
+          echo "job=$J" >> $GITHUB_OUTPUT; echo "Job: $J"
+      - name: Make stills (free AI)
+        run: python3 factory/gen_images.py jobs/${{ steps.pick.outputs.job }}
+      - name: Edit Shorts
+        env:
+          KOKORO_DIR: /home/runner/assets
+          CAPTION_FONT: /home/runner/assets/Poppins-Black.ttf
+        run: |
+          J=jobs/${{ steps.pick.outputs.job }}
+          mkdir -p out
+          for s in $J/*.json; do python3 factory/shorts.py "$s" out; done
+          rm -f out/*_mix.wav
+          for f in out/*.mp4; do ffprobe -v error -show_entries format=duration:stream=width,height -of compact "$f"; done
+      - name: Publish to the out branch
+        run: |
+          J=${{ steps.pick.outputs.job }}
+          mkdir -p /tmp/pub/$J && cp out/*.mp4 /tmp/pub/$J/ && cp jobs/$J/*.png /tmp/pub/$J/ 2>/dev/null || true
+          echo "{\"job\":\"$J\",\"status\":\"done\",\"run\":\"${{ github.run_id }}\"}" > /tmp/pub/$J/status.json
+          cd /tmp/pub && git init -q -b out && git add -A
+          git -c user.name="shorts-bot" -c user.email="shorts-bot@users.noreply.github.com" commit -qm "Shorts $J"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" out:out-$J
+      - name: Report failure
+        if: failure()
+        run: |
+          J=${{ steps.pick.outputs.job }}
+          mkdir -p /tmp/fail/$J && echo "{\"job\":\"$J\",\"status\":\"failed\",\"run\":\"${{ github.run_id }}\"}" > /tmp/fail/$J/status.json
+          cd /tmp/fail && git init -q -b out && git add -A
+          git -c user.name="shorts-bot" -c user.email="shorts-bot@users.noreply.github.com" commit -qm "Failed $J"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" out:out-$J
