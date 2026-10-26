@@ -7,7 +7,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 spec = json.load(open(sys.argv[1])); OUT = sys.argv[2]; os.makedirs(OUT, exist_ok=True)
 BASE = os.path.dirname(os.path.abspath(sys.argv[1]))
-W, H, FPS, SR = 1080, 1920, 30, 24000
+W, H = (1920, 1080) if spec.get('aspect') == '16:9' else (1080, 1920)
+FPS, SR = 30, 24000
+LAND = W > H
 def P(p): return p if os.path.isabs(p) else os.path.join(BASE, p)
 
 # ---------------------------------------------------------------- narration (free, offline)
@@ -57,7 +59,13 @@ def ease(x): x = min(1, max(0, x)); return x * x * (3 - 2 * x)
 _still = {}
 def still_frame(sg, lt):
     key = sg['path']
-    if key not in _still: _still[key] = cover(Image.open(P(key)).convert('RGB'), int(W * 1.18), int(H * 1.18))
+    if key not in _still:
+        im = Image.open(P(key)).convert('RGB'); bw, bh = int(W * 1.18), int(H * 1.18)
+        if LAND and im.height > im.width:  # portrait art in a landscape video: blurred fill + full picture in the middle
+            bg = cover(im, bw, bh).filter(ImageFilter.GaussianBlur(40)); bg = Image.blend(bg, Image.new('RGB', bg.size, (12, 12, 14)), 0.35)
+            fg = im.resize((int(im.width * bh / im.height), bh), Image.LANCZOS); bg.paste(fg, ((bw - fg.width) // 2, 0)); _still[key] = bg
+        else:
+            _still[key] = cover(im, bw, bh)
     big = _still[key]; k = ease(lt / sg['dur']); mv = sg.get('move', 'zoom_in')
     z = {'zoom_in': 1.0 + 0.14 * k, 'zoom_out': 1.14 - 0.14 * k}.get(mv, 1.08)
     cw, ch = big.width / z / 1.18 * 1.0, big.height / z / 1.18
@@ -107,16 +115,16 @@ for st, au, tx in voice_events:
 def draw_caps(a, t):
     cue = next((c for c in cues if c[0] <= t < c[1]), None)
     if not cue: return a
-    t0, t1, wt = cue; pop = min(1.0, (t - t0) / 0.1); px = 92 * (0.86 + 0.14 * (1 - (1 - pop) ** 3))
+    t0, t1, wt = cue; pop = min(1.0, (t - t0) / 0.1); px = (70 if LAND else 92) * (0.86 + 0.14 * (1 - (1 - pop) ** 3))
     f, fa = font(px), font(px * 1.14); img = Image.fromarray(a); d = ImageDraw.Draw(img)
     words = [w.upper() for *_, w in wt]; act = next((k for k, (s0, s1, _) in enumerate(wt) if s0 <= t < s1), len(wt) - 1)
     sp = px * 0.28; ws = [d.textlength(w, font=fa if k == act else f) for k, w in enumerate(words)]
     lines, cur, cw = [], [], 0
     for k, w in enumerate(ws):
-        if cur and cw + sp + w > W * 0.86: lines.append(cur); cur, cw = [], 0
+        if cur and cw + sp + w > W * (0.6 if LAND else 0.86): lines.append(cur); cur, cw = [], 0
         cw += (sp if cur else 0) + w; cur.append(k)
     if cur: lines.append(cur)
-    y = H * 0.66 - len(lines) * px * 0.6; sw = max(5, int(px * 0.13))
+    y = H * (0.80 if LAND else 0.66) - len(lines) * px * 0.6; sw = max(5, int(px * 0.13))
     for ln in lines:
         x = (W - (sum(ws[k] for k in ln) + sp * (len(ln) - 1))) / 2
         for k in ln:

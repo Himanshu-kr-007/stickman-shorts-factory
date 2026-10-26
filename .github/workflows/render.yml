@@ -16,7 +16,7 @@ concurrency:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,7 +29,7 @@ jobs:
           key: assets-v1
       - name: Install tools
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg zip > /dev/null
           pip install -q kokoro-onnx soundfile scipy pillow numpy
           mkdir -p ~/assets
           cd ~/assets
@@ -42,7 +42,10 @@ jobs:
           J="${{ github.event.inputs.job }}"
           [ -n "$J" ] || J=$(ls -d jobs/*/ | sort | tail -1 | xargs basename)
           echo "job=$J" >> $GITHUB_OUTPUT; echo "Job: $J"
-      - name: Make stills (free AI)
+      - name: Make stills (Cloudflare Workers AI, free daily allowance)
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: python3 factory/gen_images.py jobs/${{ steps.pick.outputs.job }}
       - name: Edit Shorts
         env:
@@ -57,7 +60,8 @@ jobs:
       - name: Publish to the out branch
         run: |
           J=${{ steps.pick.outputs.job }}
-          mkdir -p /tmp/pub/$J && cp out/*.mp4 /tmp/pub/$J/ && cp jobs/$J/*.png /tmp/pub/$J/ 2>/dev/null || true
+          mkdir -p /tmp/pub/$J && cp out/*.mp4 /tmp/pub/$J/ && cp jobs/$J/*.md /tmp/pub/$J/ 2>/dev/null || true
+          ls -la /tmp/pub/$J
           echo "{\"job\":\"$J\",\"status\":\"done\",\"run\":\"${{ github.run_id }}\"}" > /tmp/pub/$J/status.json
           cd /tmp/pub && git init -q -b out && git add -A
           git -c user.name="shorts-bot" -c user.email="shorts-bot@users.noreply.github.com" commit -qm "Shorts $J"
