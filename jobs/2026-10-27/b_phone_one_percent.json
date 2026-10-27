@@ -1,0 +1,111 @@
+{
+ "slug": "phone_one_percent",
+ "aspect": "9:16",
+ "voice": "am_michael",
+ "speed": 1.08,
+ "music_gain": 0.6,
+ "segments": [
+  {
+   "type": "still",
+   "path": "b1.png",
+   "seed": 2801,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt staring in horror at his smartphone whose screen shows a tiny red almost-empty battery icon, standing in his small apartment doorway, evening",
+   "narration": "Red Cap's phone: one percent. Ride in two minutes.",
+   "move": "zoom_in",
+   "transition": "cut",
+   "focus": [
+    0.5,
+    0.45
+   ]
+  },
+  {
+   "type": "still",
+   "path": "b2.png",
+   "seed": 2802,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt squinting at a nearly black phone screen with his cheeks puffed out, holding his breath, sweat drop on his head, dim living room",
+   "narration": "He dims the screen. He holds his breath.",
+   "move": "pan_right",
+   "transition": "punch",
+   "min": 1.8
+  },
+  {
+   "type": "still",
+   "path": "b3.png",
+   "seed": 2803,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt trying to force a charging cable plug that clearly does not fit into his phone, frustrated face, messy desk drawer full of tangled cables",
+   "narration": "Charger one: wrong plug.",
+   "move": "zoom_in",
+   "transition": "punch",
+   "min": 1.8
+  },
+  {
+   "type": "still",
+   "path": "b4.png",
+   "seed": 2804,
+   "prompt": "a fat orange cat sleeping peacefully curled on top of the only phone charger cable, Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt kneeling and glaring at the cat, cozy living room rug",
+   "narration": "Charger two: the cat is sleeping on it.",
+   "move": "pan_left",
+   "transition": "punch",
+   "min": 2.0
+  },
+  {
+   "type": "still",
+   "path": "b5.png",
+   "seed": 2805,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt squeezed sideways behind a big white refrigerator, only his legs and red cap visible, reaching for a wall socket, kitchen",
+   "narration": "The only free socket? Behind the fridge.",
+   "move": "pan_down",
+   "transition": "whip"
+  },
+  {
+   "type": "still",
+   "path": "b6.png",
+   "seed": 2806,
+   "prompt": "pitch dark kitchen, only Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt's big white eyes and his phone's tiny glow visible, a power cut, moonlight through the window",
+   "narration": "He plugs it in. The power goes out.",
+   "move": "zoom_in",
+   "transition": "flash",
+   "beat_at": 1.2
+  },
+  {
+   "type": "still",
+   "path": "b7.png",
+   "seed": 2807,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt sprinting across a driveway at night holding his phone high toward his small light-blue hatchback car, street lamp, speed lines",
+   "narration": "He runs to the car charger.",
+   "move": "pan_right",
+   "transition": "whip",
+   "min": 1.8
+  },
+  {
+   "type": "still",
+   "path": "b8.png",
+   "seed": 2808,
+   "prompt": "Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt slumped face-down on the bonnet of his small light-blue hatchback with the hood open, a dead car battery, street lamp at night",
+   "narration": "Car battery? Also dead.",
+   "move": "zoom_out",
+   "transition": "punch",
+   "min": 1.8
+  },
+  {
+   "type": "still",
+   "path": "b9.png",
+   "seed": 2809,
+   "prompt": "a stickman ride-share driver in a plain white car at the curb at night and Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt beside the window, both staring at their glowing phones with the same tiny red battery icon",
+   "narration": "The ride arrives. Driver's phone: one percent.",
+   "move": "pan_left",
+   "transition": "punch",
+   "beat_at": 1.5
+  },
+  {
+   "type": "still",
+   "path": "b10.png",
+   "seed": 2810,
+   "prompt": "the stickman ride-share driver handing Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt a charging cable through the car window, Red Cap, a stickman with a small red baseball cap and a plain grey t-shirt holding it to his phone with a blank deadpan face, street lamp at night",
+   "narration": "He borrows the driver's charger. Wrong plug.",
+   "move": "zoom_in",
+   "transition": "punch",
+   "beat_at": 1.6
+  }
+ ]
+}
